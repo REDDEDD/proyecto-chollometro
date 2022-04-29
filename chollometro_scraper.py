@@ -3,59 +3,58 @@ import csv
 from bs4 import BeautifulSoup
 from webdriver_manager.chrome import ChromeDriverManager
 from selenium import webdriver
-# import PySimpleGUI as sg
 
-# Inicializamos nuestro webdriver
+# Init the webdriver
 driver = webdriver.Chrome(ChromeDriverManager().install())
 
 def getChollosByCategory(pages,option=""):
     lista_chollos = {}
     cont = 1
 
-    # Recorremos las paginas
+    # Run all the pages
     for i in range(1,pages+1):
         # Obtenemos la url de forma dinamica
         driver.get('https://www.chollometro.com/%s?page=%s' % (option, i))
         
-        # Añadimos un sleep para que le de tiempo a cargar el html
+        # We add sleep to get all the html
         time.sleep(2)
 
         soup = BeautifulSoup(driver.page_source, 'html.parser')
 
-        # Buscamos y almacenamos todos los chollos
+        # Find and get all the deals
         items = soup.find_all('div', {'class', 'thread-clickRoot'})
 
-        # Recorremos cada uno de los objetos
+        # Run each deal info
         for item in items:
 
-            # Nombre
+            # Name
             nombre = item.find(class_='thread-link').text.strip()
 
-            # Comentarios
+            # Comentaries
             comentarios = item.find(class_='cept-comment-link').text.strip()
 
-            # Tienda
+            # Shop
             tienda = item.find(class_='cept-merchant-name').text.strip()
 
-            # Creador
+            # Owner
             creador = item.find(class_='thread-username').text.strip()
 
-            # Enlace
+            # Link
             enlace = item.a['href']
 
-            # Votos
+            # Votes
             if item.find(class_='cept-vote-temp')!= None:
                 votos = item.find(class_='cept-vote-temp').text[:-5].strip()
             elif item.find(class_='space--h-2') != None:
                 votos = item.find(class_='text--b').text[:-5].strip()
 
-            # Precio
+            # Price
             if item.find(class_='mute--text') != None:
                 precio = item.find(class_='mute--text').text[:-1].strip()
             else:
                 precio = 0
 
-            # Agotado
+            # Sold out
             if item.find(class_='cept-show-expired-threads') != None:
                 agotado = 'Si'
             else:
@@ -77,6 +76,7 @@ def getChollosByCategory(pages,option=""):
     return lista_chollos
 
 def getCholloDetail(enlace):
+    # Init our webdriver
     driver.get(enlace)
 
     soup = BeautifulSoup(driver.page_source, 'html.parser')
@@ -95,7 +95,7 @@ def getCholloDetail(enlace):
 
 
 def write_csv(lista_chollos):
-    # Escribimos la lista en el csv
+    # Write the obtained list in getChollosByCategory method to our csv file
     with open('csv_file.csv','a', encoding='UTF-8') as f:
         header = ['nombre','votos','precio','precio_oferta','comentarios']
         writer = csv.writer(f)
